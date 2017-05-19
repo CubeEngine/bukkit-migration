@@ -20,5 +20,15 @@
       <scope>provided</scope>
       <type>jar</type>
     </dependency>
+    <dependency>
+        <groupId>org.cubeengine.module</groupId>
+        <artifactId>conomy</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cubeengine.module</groupId>
+      <artifactId>locker</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 </project>
