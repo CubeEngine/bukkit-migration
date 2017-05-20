@@ -21,6 +21,7 @@ import static org.cubeengine.module.conomy.storage.TableAccount.TABLE_ACCOUNT;
 import static org.cubeengine.module.locker.storage.TableAccessList.TABLE_ACCESSLIST;
 import static org.cubeengine.module.locker.storage.TableLockLocations.TABLE_LOCK_LOCATIONS;
 import static org.cubeengine.module.locker.storage.TableLocks.TABLE_LOCKS;
+import static org.cubeengine.module.vote.storage.TableVote.TABLE_VOTE;
 
 import de.cubeisland.engine.logscribe.Log;
 import de.cubeisland.engine.modularity.asm.marker.ModuleInfo;
@@ -28,6 +29,7 @@ import de.cubeisland.engine.modularity.core.Module;
 import de.cubeisland.engine.modularity.core.marker.Disable;
 import de.cubeisland.engine.modularity.core.marker.Enable;
 import org.cubeengine.butler.parametric.Command;
+import org.cubeengine.butler.parametric.Flag;
 import org.cubeengine.libcube.service.database.Database;
 import org.cubeengine.libcube.service.filesystem.ModuleConfig;
 import org.cubeengine.libcube.service.i18n.I18n;
@@ -35,6 +37,8 @@ import org.cubeengine.libcube.util.ConfirmManager;
 import org.cubeengine.module.conomy.Conomy;
 import org.cubeengine.module.locker.Locker;
 import org.cubeengine.module.locker.storage.TableAccessList;
+import org.cubeengine.module.vote.Vote;
+import org.cubeengine.module.vote.storage.TableVote;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.text.Text;
 
@@ -63,6 +67,7 @@ public class Bukkitmigration extends Module
 
     @Inject Optional<Conomy> conomy;
     @Inject Optional<Locker> locker;
+    @Inject Optional<Vote> vote;
 
     @Enable
     public void onEnable()
@@ -75,7 +80,7 @@ public class Bukkitmigration extends Module
     }
 
     @Command(desc = "Migrates old Bukkit Data")
-    public void migrateBukkitData(CommandSource ctx) throws SQLException
+    public void migrateBukkitData(CommandSource ctx, @Flag boolean keepOld) throws SQLException
     {
         Connection conn = db.getConnection();
         Statement stmt = conn.createStatement();
@@ -120,7 +125,6 @@ public class Bukkitmigration extends Module
         batchInsertUUIDMap(conn, worldMap, tableWorldUUIDs);
         // tableWorldUUIDs is now filled with old ID => UUID for worlds
 
-
         // commence migration...
 
         // OLD cube_account_access: empty
@@ -132,8 +136,10 @@ public class Bukkitmigration extends Module
         {
             // INFO: This does not handle bank accounts
 
-            // Clear current data
-            stmt.execute("DELETE FROM " + TABLE_ACCOUNT.getName());
+            if (!keepOld) // Clear current data?
+            {
+                stmt.execute("DELETE FROM " + TABLE_ACCOUNT.getName());
+            }
             // Migrate Player Accounts
             stmt.execute("INSERT INTO `" + TABLE_ACCOUNT.getName() + "` "
                     + "(id, name, HIDDEN, INVITE, IS_UUID)"
@@ -168,6 +174,12 @@ public class Bukkitmigration extends Module
 
         if (locker.isPresent())
         {
+            if (!keepOld)
+            {
+                stmt.execute("DELETE FROM " + TABLE_ACCESSLIST.getName());
+                stmt.execute("DELETE FROM " + TABLE_LOCK_LOCATIONS.getName());
+                stmt.execute("DELETE FROM " + TABLE_LOCKS.getName());
+            }
             // Copy Locks
             stmt.execute("ALTER TABLE `" + TABLE_LOCKS.getName() + "` ADD (OLD_ID NUMERIC)");
             stmt.execute("INSERT INTO `" + TABLE_LOCKS.getName() + "` "
@@ -229,8 +241,21 @@ public class Bukkitmigration extends Module
         // OLD teleportinvites: TODO toConfig
         // OLD teleportpoints: TODO toConfig
 
-        // OLD votes: TODO toDB
-        // NEW votecount: // TODO rename?
+        // OLD votes
+        // NEW votecount
+        if (vote.isPresent())
+        {
+            if (!keepOld)
+            {
+                stmt.execute("DELETE FROM " + TABLE_VOTE.getName());
+            }
+            stmt.execute("INSERT INTO " + TABLE_VOTE.getName() + " "
+                    + "(userid, lastvote, voteamount) "
+                    + "SELECT u.UUID, v.lastvote, v.voteamount "
+                    + "FROM " + tableUserUUIDs + " as u,"
+                    + config.prefix + "votes as v "
+                    + "WHERE v.userid = u.id");
+        }
     }
 
     private void batchInsertUUIDMap(Connection conn, Map<Long, UUID> map, String table) throws SQLException

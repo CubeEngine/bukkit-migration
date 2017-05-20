@@ -30,5 +30,10 @@
       <artifactId>locker</artifactId>
       <version>1.0.0-SNAPSHOT</version>
     </dependency>
+      <dependency>
+          <groupId>org.cubeengine</groupId>
+          <artifactId>vote</artifactId>
+          <version>1.0.0-SNAPSHOT</version>
+      </dependency>
   </dependencies>
 </project>
