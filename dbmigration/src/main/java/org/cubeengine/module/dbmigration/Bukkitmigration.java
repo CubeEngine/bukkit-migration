@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with CubeEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.cubeengine.module.bukkitmigration;
+package org.cubeengine.module.dbmigration;
 
 import static org.cubeengine.module.conomy.storage.TableAccount.TABLE_ACCOUNT;
 import static org.cubeengine.module.locker.storage.TableAccessList.TABLE_ACCESSLIST;
@@ -54,9 +54,6 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
-/**
- * A module to edit signs and signed books
- */
 @ModuleInfo(name = "Bukkit Migration", description = "Migrate your data")
 public class Bukkitmigration extends Module
 {

@@ -15,28 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with CubeEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.cubeengine.module.bukkitmigration;
+package org.cubeengine.module.dbmigration;
 
 import org.cubeengine.reflect.annotations.Comment;
 import org.cubeengine.reflect.codec.yaml.ReflectedYaml;
 
 public class MigrationConfig extends ReflectedYaml
 {
-    @Comment("The host to connect with. Default: localhost")
-    public String host = "localhost";
-
-    @Comment("The port to connect with. Default 3306")
-    public short port = 3306;
-
-    @Comment("The user using the database")
-    public String user = "minecraft";
-
-    @Comment("The password for the specified user")
-    public String password = "";
-
-    @Comment("The name of the database")
-    public String database = "minecraft";
-
     @Comment("The table prefix used for all old CubeEngine tables")
     public String prefix = "cube_";
 
