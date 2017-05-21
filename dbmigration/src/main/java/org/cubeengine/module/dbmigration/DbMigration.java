@@ -54,8 +54,8 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
-@ModuleInfo(name = "Bukkit Migration", description = "Migrate your data")
-public class Bukkitmigration extends Module
+@ModuleInfo(name = "DB Bukkit Migration", description = "Migrate your data")
+public class DbMigration extends Module
 {
     @ModuleConfig private MigrationConfig config;
     @Inject private Database db;
@@ -275,14 +275,4 @@ public class Bukkitmigration extends Module
             pStmt.executeBatch();
         }
     }
-
-    @Command(desc = "Cleanup all the mess")
-    public void cleanUpBukkitData(CommandSource ctx)
-    {
-        ConfirmManager.requestConfirmation(i18n, Text.of("DROP all old data?"), ctx, () -> {
-            // TODO drop all the old tables
-
-        });
-    }
-
 }

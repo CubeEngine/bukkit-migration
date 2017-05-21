@@ -27,15 +27,31 @@ import org.cubeengine.libcube.service.database.Database;
 import org.cubeengine.libcube.service.filesystem.ModuleConfig;
 import org.cubeengine.libcube.service.i18n.I18n;
 import org.cubeengine.libcube.util.ConfirmManager;
+import org.cubeengine.module.dbmigration.DbMigration;
 import org.cubeengine.module.roles.Roles;
+import org.cubeengine.module.roles.data.PermissionData;
+import org.cubeengine.module.roles.service.subject.UserSubject;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.profile.GameProfile;
+import org.spongepowered.api.service.whitelist.WhitelistService;
 import org.spongepowered.api.text.Text;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -50,11 +66,35 @@ public class RolesMigration extends Module
     @Inject private PluginContainer plugin;
 
     @Inject Optional<Roles> roles;
+    private Map<UUID, List<String>> roleMap = new HashMap<>();
 
     @Enable
-    public void onEnable()
+    public void onEnable() throws SQLException
     {
-        em.registerListeners(plugin, this);
+        if (roles.isPresent())
+        {
+            Statement stmt = db.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery(
+                  "SELECT u.UUIDleast, u.UUIDmost, r.roleName "
+                    + "FROM " + config.prefix + "user as u, "
+                    + config.prefix + "roles as r "
+                    + "WHERE u.`key` = r.userId");
+
+            while (rs.next())
+            {
+                UUID uuid = new UUID(rs.getLong("UUIDleast"), rs.getLong("UUIDmost"));
+                String role = rs.getString("rolename");
+                List<String> roleList = roleMap.getOrDefault(uuid, new ArrayList<>());
+                roleList.add(role);
+                roleMap.putIfAbsent(uuid, roleList);
+            }
+
+            em.registerListeners(plugin, this);
+        }
+        else
+        {
+            logger.warn("Roles Module not found. Migration cannot happen!");
+        }
     }
 
     @Disable
@@ -64,18 +104,28 @@ public class RolesMigration extends Module
     }
 
     @Listener
-    public void onLogin(ClientConnectionEvent.Join event)
+    public void onLogin(ClientConnectionEvent.Join event, @Getter("getTargetEntity") Player player)
     {
-
+        List<String> oldroles = roleMap.get(player.getUniqueId());
+        if (oldroles.isEmpty())
+        {
+            return;
+        }
+        PermissionData data = player.get(PermissionData.class).orElse(new PermissionData(new ArrayList<>(), new HashMap<>(), new HashMap<>()));
+        data.getParents().addAll(oldroles);
+        player.offer(data);
+        UserSubject subject = roles.get().getService().getUserSubjects().get(player.getIdentifier());
+        subject.reload();
     }
 
-    @Command(desc = "Cleanup all the mess")
-    public void cleanUpRolesBukkitData(CommandSource ctx)
+    @Command(desc = "Adds all players with non-default roles to the whitelist")
+    public void whitelistRoles(CommandSource ctx)
     {
-        ConfirmManager.requestConfirmation(i18n, Text.of("DROP all old data?"), ctx, () -> {
-            // TODO drop all the old tables
-
-        });
+        WhitelistService ws = Sponge.getServiceManager().provideUnchecked(WhitelistService.class);
+        for (UUID uuid : roleMap.keySet())
+        {
+            ws.addProfile(GameProfile.of(uuid));
+        }
     }
 
 }
