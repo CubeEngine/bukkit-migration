@@ -26,8 +26,6 @@ import org.cubeengine.butler.parametric.Command;
 import org.cubeengine.libcube.service.database.Database;
 import org.cubeengine.libcube.service.filesystem.ModuleConfig;
 import org.cubeengine.libcube.service.i18n.I18n;
-import org.cubeengine.libcube.util.ConfirmManager;
-import org.cubeengine.module.dbmigration.DbMigration;
 import org.cubeengine.module.roles.Roles;
 import org.cubeengine.module.roles.data.PermissionData;
 import org.cubeengine.module.roles.service.subject.UserSubject;
@@ -41,7 +39,6 @@ import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.service.whitelist.WhitelistService;
-import org.spongepowered.api.text.Text;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
