@@ -25,6 +25,7 @@ import static org.cubeengine.module.vote.storage.TableVote.TABLE_VOTE;
 
 import de.cubeisland.engine.logscribe.Log;
 import de.cubeisland.engine.modularity.asm.marker.ModuleInfo;
+import de.cubeisland.engine.modularity.core.Maybe;
 import de.cubeisland.engine.modularity.core.Module;
 import de.cubeisland.engine.modularity.core.marker.Disable;
 import de.cubeisland.engine.modularity.core.marker.Enable;
@@ -33,14 +34,10 @@ import org.cubeengine.butler.parametric.Flag;
 import org.cubeengine.libcube.service.database.Database;
 import org.cubeengine.libcube.service.filesystem.ModuleConfig;
 import org.cubeengine.libcube.service.i18n.I18n;
-import org.cubeengine.libcube.util.ConfirmManager;
 import org.cubeengine.module.conomy.Conomy;
 import org.cubeengine.module.locker.Locker;
-import org.cubeengine.module.locker.storage.TableAccessList;
 import org.cubeengine.module.vote.Vote;
-import org.cubeengine.module.vote.storage.TableVote;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.text.Text;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -49,7 +46,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -62,9 +58,9 @@ public class DbMigration extends Module
     @Inject private Log logger;
     @Inject private I18n i18n;
 
-    @Inject Optional<Conomy> conomy;
-    @Inject Optional<Locker> locker;
-    @Inject Optional<Vote> vote;
+    @Inject Maybe<Conomy> conomy;
+    @Inject Maybe<Locker> locker;
+    @Inject Maybe<Vote> vote;
 
     @Enable
     public void onEnable()
@@ -129,7 +125,7 @@ public class DbMigration extends Module
         // OLD accounts: key, user_id(user table), name, value, mask (1=hidden 2=needsinvite)
         // NEW conomy_account id(uuid), name, mask (same + 4=uuid for players)
         // NEW conomy_balance id(uuid), currency, context, balance
-        if (conomy.isPresent())
+        if (conomy.isAvailable())
         {
             // INFO: This does not handle bank accounts
 
@@ -147,7 +143,7 @@ public class DbMigration extends Module
                     + "WHERE ac.user_id = ou.`key`"
                     + "AND ac.user_id = u.ID");
             // Migrate Player Account balance
-            String defCurrency = conomy.get().getConfig().defaultCurrency;
+            String defCurrency = conomy.value().getConfig().defaultCurrency;
             stmt.execute("INSERT INTO `" + TABLE_ACCOUNT.getName() + "` "
                     + "(id, currency, context, balance)"
                     + " SELECT u.UUID, '" + defCurrency +"', 'global|', ac.value"
@@ -169,7 +165,7 @@ public class DbMigration extends Module
         // OLD locklocation
         // NEW locker_location
 
-        if (locker.isPresent())
+        if (locker.isAvailable())
         {
             if (!keepOld)
             {
@@ -240,7 +236,7 @@ public class DbMigration extends Module
 
         // OLD votes
         // NEW votecount
-        if (vote.isPresent())
+        if (vote.isAvailable())
         {
             if (!keepOld)
             {

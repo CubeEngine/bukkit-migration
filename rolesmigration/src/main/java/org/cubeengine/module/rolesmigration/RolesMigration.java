@@ -19,6 +19,7 @@ package org.cubeengine.module.rolesmigration;
 
 import de.cubeisland.engine.logscribe.Log;
 import de.cubeisland.engine.modularity.asm.marker.ModuleInfo;
+import de.cubeisland.engine.modularity.core.Maybe;
 import de.cubeisland.engine.modularity.core.Module;
 import de.cubeisland.engine.modularity.core.marker.Disable;
 import de.cubeisland.engine.modularity.core.marker.Enable;
@@ -62,13 +63,13 @@ public class RolesMigration extends Module
     @Inject private EventManager em;
     @Inject private PluginContainer plugin;
 
-    @Inject Optional<Roles> roles;
+    @Inject Maybe<Roles> roles;
     private Map<UUID, List<String>> roleMap = new HashMap<>();
 
     @Enable
     public void onEnable() throws SQLException
     {
-        if (roles.isPresent())
+        if (roles.isAvailable())
         {
             Statement stmt = db.getConnection().createStatement();
             ResultSet rs = stmt.executeQuery(
@@ -111,7 +112,7 @@ public class RolesMigration extends Module
         PermissionData data = player.get(PermissionData.class).orElse(new PermissionData(new ArrayList<>(), new HashMap<>(), new HashMap<>()));
         data.getParents().addAll(oldroles);
         player.offer(data);
-        UserSubject subject = roles.get().getService().getUserSubjects().get(player.getIdentifier());
+        UserSubject subject = roles.value().getService().getUserSubjects().get(player.getIdentifier());
         subject.reload();
     }
 
