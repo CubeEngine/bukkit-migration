@@ -105,7 +105,7 @@ public class RolesMigration extends Module
     public void onLogin(ClientConnectionEvent.Join event, @Getter("getTargetEntity") Player player)
     {
         List<String> oldroles = roleMap.get(player.getUniqueId());
-        if (oldroles.isEmpty())
+        if (oldroles == null || oldroles.isEmpty())
         {
             return;
         }
