@@ -88,7 +88,7 @@ public class DbMigration extends Module
         while (rs.next())
         {
             long uid = rs.getLong("key");
-            UUID uuid = new UUID(rs.getLong("UUIDleast"), rs.getLong("UUIDmost"));
+            UUID uuid = new UUID(rs.getLong("UUIDmost"), rs.getLong("UUIDleast"));
             userMap.put(uid, uuid);
         }
 
@@ -109,7 +109,7 @@ public class DbMigration extends Module
         while (rs.next())
         {
             long uid = rs.getLong("key");
-            UUID uuid = new UUID(rs.getLong("UUIDleast"), rs.getLong("UUIDmost"));
+            UUID uuid = new UUID(rs.getLong("UUIDmost"), rs.getLong("UUIDleast"));
             worldMap.put(uid, uuid);
         }
 

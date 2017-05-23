@@ -79,7 +79,7 @@ public class RolesMigration extends Module
 
             while (rs.next())
             {
-                UUID uuid = new UUID(rs.getLong("UUIDleast"), rs.getLong("UUIDmost"));
+                UUID uuid = new UUID(rs.getLong("UUIDmost"), rs.getLong("UUIDleast"));
                 String role = rs.getString("rolename");
                 List<String> roleList = roleMap.getOrDefault(uuid, new ArrayList<>());
                 roleList.add(role);
