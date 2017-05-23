@@ -25,6 +25,7 @@ import de.cubeisland.engine.modularity.core.marker.Disable;
 import de.cubeisland.engine.modularity.core.marker.Enable;
 import org.cubeengine.butler.parametric.Command;
 import org.cubeengine.libcube.service.database.Database;
+import org.cubeengine.libcube.service.event.EventManager;
 import org.cubeengine.libcube.service.filesystem.ModuleConfig;
 import org.cubeengine.libcube.service.i18n.I18n;
 import org.cubeengine.module.roles.Roles;
@@ -33,7 +34,6 @@ import org.cubeengine.module.roles.service.subject.UserSubject;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
@@ -87,7 +87,7 @@ public class RolesMigration extends Module
                 roleMap.putIfAbsent(uuid, roleList);
             }
 
-            em.registerListeners(plugin, this);
+            em.registerListener(RolesMigration.class, this);
         }
         else
         {
