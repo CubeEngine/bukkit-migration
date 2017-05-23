@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -111,6 +110,13 @@ public class RolesMigration extends Module
             return;
         }
         PermissionData data = player.get(PermissionData.class).orElse(new PermissionData(new ArrayList<>(), new HashMap<>(), new HashMap<>()));
+
+        logger.info("Adding Roles to {}", player.getName());
+        for (String oldrole : oldroles)
+        {
+            logger.info(" - {}", oldrole);
+        }
+
         data.getParents().addAll(oldroles);
         player.offer(data);
         UserSubject subject = roles.value().getService().getUserSubjects().get(player.getIdentifier());
