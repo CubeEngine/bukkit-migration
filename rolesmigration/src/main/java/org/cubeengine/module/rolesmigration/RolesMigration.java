@@ -87,6 +87,7 @@ public class RolesMigration extends Module
                 roleMap.putIfAbsent(uuid, roleList);
             }
 
+            logger.info("Loaded {} players with their roles.", roleMap.size());
             em.registerListener(RolesMigration.class, this);
         }
         else
