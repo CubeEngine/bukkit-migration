@@ -31,6 +31,7 @@ import de.cubeisland.engine.modularity.core.marker.Disable;
 import de.cubeisland.engine.modularity.core.marker.Enable;
 import org.cubeengine.butler.parametric.Command;
 import org.cubeengine.butler.parametric.Flag;
+import org.cubeengine.libcube.service.command.CommandManager;
 import org.cubeengine.libcube.service.database.Database;
 import org.cubeengine.libcube.service.filesystem.ModuleConfig;
 import org.cubeengine.libcube.service.i18n.I18n;
@@ -55,6 +56,7 @@ public class DbMigration extends Module
 {
     @ModuleConfig private MigrationConfig config;
     @Inject private Database db;
+    @Inject private CommandManager cm;
     @Inject private Log logger;
     @Inject private I18n i18n;
 
@@ -65,6 +67,7 @@ public class DbMigration extends Module
     @Enable
     public void onEnable()
     {
+        cm.addCommands(this, this);
     }
 
     @Disable
