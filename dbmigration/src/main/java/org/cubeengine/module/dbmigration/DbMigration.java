@@ -33,6 +33,7 @@ import org.cubeengine.butler.parametric.Command;
 import org.cubeengine.butler.parametric.Flag;
 import org.cubeengine.libcube.service.command.CommandManager;
 import org.cubeengine.libcube.service.database.Database;
+import org.cubeengine.libcube.service.database.mysql.MySQLDatabaseConfiguration;
 import org.cubeengine.libcube.service.filesystem.ModuleConfig;
 import org.cubeengine.libcube.service.i18n.I18n;
 import org.cubeengine.module.conomy.Conomy;
@@ -78,6 +79,7 @@ public class DbMigration extends Module
     @Command(desc = "Migrates old Bukkit Data")
     public void migrateBukkitData(CommandSource ctx, @Flag boolean keepOld) throws SQLException
     {
+        String mainPrefix = ((MySQLDatabaseConfiguration) db.getDatabaseConfig()).tablePrefix;
         Connection conn = db.getConnection();
         Statement stmt = conn.createStatement();
         // MySQL Tables:
@@ -134,10 +136,10 @@ public class DbMigration extends Module
 
             if (!keepOld) // Clear current data?
             {
-                stmt.execute("DELETE FROM " + TABLE_ACCOUNT.getName());
+                stmt.execute("DELETE FROM " + mainPrefix + TABLE_ACCOUNT.getName());
             }
             // Migrate Player Accounts
-            stmt.execute("INSERT INTO `" + TABLE_ACCOUNT.getName() + "` "
+            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_ACCOUNT.getName() + "` "
                     + "(id, name, HIDDEN, INVITE, IS_UUID)"
                     + " SELECT u.UUID, ou.last_name, ac.mask & 1 = 1, ac.mask & 2 = 2, true"
                     + " FROM " + tableUserUUIDs + " as u, "
@@ -147,7 +149,7 @@ public class DbMigration extends Module
                     + "AND ac.user_id = u.ID");
             // Migrate Player Account balance
             String defCurrency = conomy.value().getConfig().defaultCurrency;
-            stmt.execute("INSERT INTO `" + TABLE_ACCOUNT.getName() + "` "
+            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_ACCOUNT.getName() + "` "
                     + "(id, currency, context, balance)"
                     + " SELECT u.UUID, '" + defCurrency +"', 'global|', ac.value"
                     + " FROM " + tableUserUUIDs + " as u, "
@@ -172,13 +174,13 @@ public class DbMigration extends Module
         {
             if (!keepOld)
             {
-                stmt.execute("DELETE FROM " + TABLE_ACCESSLIST.getName());
-                stmt.execute("DELETE FROM " + TABLE_LOCK_LOCATIONS.getName());
-                stmt.execute("DELETE FROM " + TABLE_LOCKS.getName());
+                stmt.execute("DELETE FROM " + mainPrefix +TABLE_ACCESSLIST.getName());
+                stmt.execute("DELETE FROM " + mainPrefix +TABLE_LOCK_LOCATIONS.getName());
+                stmt.execute("DELETE FROM " + mainPrefix +TABLE_LOCKS.getName());
             }
             // Copy Locks
-            stmt.execute("ALTER TABLE `" + TABLE_LOCKS.getName() + "` ADD (OLD_ID NUMERIC)");
-            stmt.execute("INSERT INTO `" + TABLE_LOCKS.getName() + "` "
+            stmt.execute("ALTER TABLE `" + mainPrefix +TABLE_LOCKS.getName() + "` ADD (OLD_ID NUMERIC)");
+            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_LOCKS.getName() + "` "
                     + "(owner_id, flags, type, lock_type, password, entity_uuid, last_access, created, OLD_ID) "
                     + "SELECT l.ID, u.UUID, l.flags, l.type, l.lock_type, l.password, NULL, l.last_access, l.created, l.id "
                     + "FROM " + tableUserUUIDs + " as u, "
@@ -187,7 +189,7 @@ public class DbMigration extends Module
                     + "AND l.entity_uid_least IS NULL");
 
             // Copy Lock Locations
-            stmt.execute("INSERT INTO `" + TABLE_LOCK_LOCATIONS.getName() + "` "
+            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_LOCK_LOCATIONS.getName() + "` "
                     + "(world_id, x,y,z, chunkX, chunkZ, lock_id) "
                     + "SELECT w.UUID, ll.x, ll.y, ll.z, ll.chunkX, ll.chunkZ, l.id "
                     + "FROM " + tableWorldUUIDs + " as w,"
@@ -198,7 +200,7 @@ public class DbMigration extends Module
 
             // Copy Lock AccessList
             // First global
-            stmt.execute("INSERT INTO `" + TABLE_ACCESSLIST.getName() + "` "
+            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_ACCESSLIST.getName() + "` "
                     + "(user_id, lock_id, level, owner_id) "
                     + "SELECT u1.UUID, NULL, al.level, u2.UUID "
                     + "FROM " + tableUserUUIDs + " as u1, "
@@ -209,17 +211,17 @@ public class DbMigration extends Module
                     + "AND al.owner_id IS NOT NULL");
 
             // Then single locks
-            stmt.execute("INSERT INTO `" + TABLE_ACCESSLIST.getName() + "` "
+            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_ACCESSLIST.getName() + "` "
                     + "(user_id, lock_id, level, owner_id) "
                     + "SELECT u1.UUID, l.ID, al.level, NULL "
                     + "FROM " + tableUserUUIDs + " as u1, "
-                    + TABLE_LOCKS.getName() + " as l,"
+                    + mainPrefix +TABLE_LOCKS.getName() + " as l,"
                     + config.prefix + "lockaccesslist as al "
                     + "WHERE u1.ID = al.user_id "
                     + "AND l.OLD_ID = al.lock_id "
                     + "AND al.lock_id IS NOT NULL");
 
-            stmt.execute("ALTER TABLE `" + TABLE_LOCKS.getName() + "` DROP COLUMN OLD_ID");
+            stmt.execute("ALTER TABLE `" + mainPrefix +TABLE_LOCKS.getName() + "` DROP COLUMN OLD_ID");
         }
 
         // OLD mail: not needed
@@ -243,9 +245,9 @@ public class DbMigration extends Module
         {
             if (!keepOld)
             {
-                stmt.execute("DELETE FROM " + TABLE_VOTE.getName());
+                stmt.execute("DELETE FROM " + mainPrefix +TABLE_VOTE.getName());
             }
-            stmt.execute("INSERT INTO " + TABLE_VOTE.getName() + " "
+            stmt.execute("INSERT INTO " + mainPrefix +TABLE_VOTE.getName() + " "
                     + "(userid, lastvote, voteamount) "
                     + "SELECT u.UUID, v.lastvote, v.voteamount "
                     + "FROM " + tableUserUUIDs + " as u,"
