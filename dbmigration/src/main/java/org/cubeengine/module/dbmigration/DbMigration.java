@@ -185,7 +185,11 @@ public class DbMigration extends Module
                 stmt.execute("DELETE FROM " + mainPrefix +TABLE_LOCKS.getName());
             }
             // Copy Locks
-            stmt.execute("ALTER TABLE `" + mainPrefix +TABLE_LOCKS.getName() + "` ADD (OLD_ID NUMERIC)");
+            try {
+                stmt.execute("ALTER TABLE `" + mainPrefix + TABLE_LOCKS.getName() + "` ADD (OLD_ID NUMERIC)");
+            } catch (SQLException ignore) {
+
+            }
             cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix +TABLE_LOCKS.getName() + "` "
                     + "(owner_id, flags, type, lock_type, password, entity_uuid, last_access, created, OLD_ID) "
                     + "SELECT u.UUID, l.flags, l.type, l.lock_type, l.password, NULL, l.last_access, l.created, l.id "
