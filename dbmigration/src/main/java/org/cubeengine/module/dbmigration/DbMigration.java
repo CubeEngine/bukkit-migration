@@ -40,6 +40,7 @@ import org.cubeengine.libcube.service.i18n.I18n;
 import org.cubeengine.module.conomy.Conomy;
 import org.cubeengine.module.conomy.storage.TableBalance;
 import org.cubeengine.module.locker.Locker;
+import org.cubeengine.module.locker.storage.Lock;
 import org.cubeengine.module.vote.Vote;
 import org.spongepowered.api.command.CommandSource;
 
@@ -62,10 +63,6 @@ public class DbMigration extends Module
     @Inject private CommandManager cm;
     @Inject private Log logger;
     @Inject private I18n i18n;
-
-    @Inject Maybe<Conomy> conomy;
-    @Inject Maybe<Locker> locker;
-    @Inject Maybe<Vote> vote;
 
     @Enable
     public void onEnable()
@@ -135,8 +132,8 @@ public class DbMigration extends Module
         // OLD accounts: key, user_id(user table), name, value, mask (1=hidden 2=needsinvite)
         // NEW conomy_account id(uuid), name, mask (same + 4=uuid for players)
         // NEW conomy_balance id(uuid), currency, context, balance
-        logger.info("migrate topl...");
-        if (conomy.isAvailable())
+        logger.info("migrate conomy...");
+        if (getModularity().provide(Conomy.class) != null)
         {
             // INFO: This does not handle bank accounts
 
@@ -155,7 +152,7 @@ public class DbMigration extends Module
                     + "AND ac.user_id = u.ID");
             logger.info(cnt + " accounts");
             // Migrate Player Account balance
-            String defCurrency = conomy.value().getConfig().defaultCurrency;
+            String defCurrency = getModularity().provide(Conomy.class).getConfig().defaultCurrency;
             cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix + TABLE_BALANCE.getName() + "` "
                     + "(id, currency, context, balance)"
                     + " SELECT u.UUID, '" + defCurrency +"', 'global|', ac.value"
@@ -179,7 +176,7 @@ public class DbMigration extends Module
         // NEW locker_location
 
         logger.info("migrate locker...");
-        if (locker.isAvailable())
+        if (getModularity().provide(Locker.class) != null)
         {
             if (!keepOld)
             {
@@ -255,7 +252,7 @@ public class DbMigration extends Module
         // OLD votes
         // NEW votecount
         logger.info("migrate votes...");
-        if (vote.isAvailable())
+        if (getModularity().provide(Vote.class) != null)
         {
             if (!keepOld)
             {
