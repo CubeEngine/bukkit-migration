@@ -188,7 +188,7 @@ public class DbMigration extends Module
             stmt.execute("ALTER TABLE `" + mainPrefix +TABLE_LOCKS.getName() + "` ADD (OLD_ID NUMERIC)");
             cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix +TABLE_LOCKS.getName() + "` "
                     + "(owner_id, flags, type, lock_type, password, entity_uuid, last_access, created, OLD_ID) "
-                    + "SELECT l.ID, u.UUID, l.flags, l.type, l.lock_type, l.password, NULL, l.last_access, l.created, l.id "
+                    + "SELECT u.UUID, l.flags, l.type, l.lock_type, l.password, NULL, l.last_access, l.created, l.id "
                     + "FROM " + tableUserUUIDs + " as u, "
                     + config.prefix +"locks as l "
                     + "WHERE l.owner_id = u.id "
