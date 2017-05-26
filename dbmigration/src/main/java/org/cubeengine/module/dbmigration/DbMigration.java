@@ -141,7 +141,7 @@ public class DbMigration extends Module
             // Migrate Player Accounts
             stmt.execute("INSERT INTO `" + mainPrefix +TABLE_ACCOUNT.getName() + "` "
                     + "(id, name, HIDDEN, INVITE, IS_UUID)"
-                    + " SELECT u.UUID, ou.last_name, ac.mask & 1 = 1, ac.mask & 2 = 2, true"
+                    + " SELECT u.UUID, ou.lastname, ac.mask & 1 = 1, ac.mask & 2 = 2, true"
                     + " FROM " + tableUserUUIDs + " as u, "
                     + config.prefix + "user as ou,"
                     + config.prefix + "accounts as ac "
