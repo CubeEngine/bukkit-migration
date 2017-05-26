@@ -52,7 +52,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
-@ModuleInfo(name = "Bukkit Migration", description = "Migrate your data")
+@ModuleInfo(name = "RolesBukkitMigration", description = "Migrate your data")
 public class RolesMigration extends Module
 {
     @ModuleConfig private RolesMigrationConfig config;

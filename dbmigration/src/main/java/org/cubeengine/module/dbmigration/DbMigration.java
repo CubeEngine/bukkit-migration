@@ -52,7 +52,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
-@ModuleInfo(name = "DB Bukkit Migration", description = "Migrate your data")
+@ModuleInfo(name = "DBBukkitMigration", description = "Migrate your data")
 public class DbMigration extends Module
 {
     @ModuleConfig private MigrationConfig config;
@@ -98,7 +98,7 @@ public class DbMigration extends Module
         String tableUserUUIDs = config.prefix + "user_uuids";
         stmt.execute("CREATE TABLE IF NOT EXISTS " + tableUserUUIDs + " ("
                 + "ID NUMERIC,"
-                + "UUID VARCHAR2(64)"
+                + "UUID VARCHAR(64)"
                 + ")");
 
         batchInsertUUIDMap(conn, userMap, tableUserUUIDs);
@@ -118,7 +118,7 @@ public class DbMigration extends Module
         String tableWorldUUIDs = config.prefix + "user_uuids";
         stmt.execute("CREATE TABLE IF NOT EXISTS " + tableWorldUUIDs + " ("
                 + "ID NUMERIC,"
-                + "UUID VARCHAR2(64) )");
+                + "UUID VARCHAR(64) )");
 
         batchInsertUUIDMap(conn, worldMap, tableWorldUUIDs);
         // tableWorldUUIDs is now filled with old ID => UUID for worlds
