@@ -205,7 +205,7 @@ public class DbMigration extends Module
                     + "SELECT w.UUID, ll.x, ll.y, ll.z, ll.chunkX, ll.chunkZ, l.id "
                     + "FROM " + tableWorldUUIDs + " as w,"
                     + config.prefix + "locklocation as ll, "
-                    + TABLE_LOCKS.getName() + " as l "
+                    + mainPrefix + TABLE_LOCKS.getName() + " as l "
                     + "WHERE w.ID = ll.world_id "
                     + "AND ll.lock_id = l.OLD_ID");
             logger.info(cnt + " locklocation");
