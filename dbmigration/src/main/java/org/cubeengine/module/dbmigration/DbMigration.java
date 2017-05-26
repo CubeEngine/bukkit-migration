@@ -101,7 +101,7 @@ public class DbMigration extends Module
                 + "ID NUMERIC,"
                 + "UUID VARCHAR(64)"
                 + ")");
-
+        stmt.execute("TRUNCATE " + tableUserUUIDs);
         batchInsertUUIDMap(conn, userMap, tableUserUUIDs);
         // tableUserUUIDs is now filled with old ID => UUID for users
 
@@ -122,6 +122,7 @@ public class DbMigration extends Module
                 + "ID NUMERIC,"
                 + "UUID VARCHAR(64) )");
 
+        stmt.execute("TRUNCATE " + tableWorldUUIDs);
         batchInsertUUIDMap(conn, worldMap, tableWorldUUIDs);
         // tableWorldUUIDs is now filled with old ID => UUID for worlds
 
@@ -132,7 +133,7 @@ public class DbMigration extends Module
         // OLD accounts: key, user_id(user table), name, value, mask (1=hidden 2=needsinvite)
         // NEW conomy_account id(uuid), name, mask (same + 4=uuid for players)
         // NEW conomy_balance id(uuid), currency, context, balance
-        logger.info("migrate conomy...");
+        logger.info("migrate topl...");
         if (conomy.isAvailable())
         {
             // INFO: This does not handle bank accounts
