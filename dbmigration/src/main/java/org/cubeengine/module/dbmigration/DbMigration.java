@@ -207,7 +207,7 @@ public class DbMigration extends Module
                     + config.prefix + "locklocation as ll, "
                     + TABLE_LOCKS.getName() + " as l "
                     + "WHERE w.ID = ll.world_id "
-                    + "AND ll.lock_id = l.old_id");
+                    + "AND ll.lock_id = l.OLD_ID");
             logger.info(cnt + " locklocation");
 
             // Copy Lock AccessList
