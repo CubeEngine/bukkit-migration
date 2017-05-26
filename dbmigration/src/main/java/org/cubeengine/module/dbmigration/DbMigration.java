@@ -18,6 +18,7 @@
 package org.cubeengine.module.dbmigration;
 
 import static org.cubeengine.module.conomy.storage.TableAccount.TABLE_ACCOUNT;
+import static org.cubeengine.module.conomy.storage.TableBalance.TABLE_BALANCE;
 import static org.cubeengine.module.locker.storage.TableAccessList.TABLE_ACCESSLIST;
 import static org.cubeengine.module.locker.storage.TableLockLocations.TABLE_LOCK_LOCATIONS;
 import static org.cubeengine.module.locker.storage.TableLocks.TABLE_LOCKS;
@@ -37,6 +38,7 @@ import org.cubeengine.libcube.service.database.mysql.MySQLDatabaseConfiguration;
 import org.cubeengine.libcube.service.filesystem.ModuleConfig;
 import org.cubeengine.libcube.service.i18n.I18n;
 import org.cubeengine.module.conomy.Conomy;
+import org.cubeengine.module.conomy.storage.TableBalance;
 import org.cubeengine.module.locker.Locker;
 import org.cubeengine.module.vote.Vote;
 import org.spongepowered.api.command.CommandSource;
@@ -154,7 +156,7 @@ public class DbMigration extends Module
             logger.info(cnt + " accounts");
             // Migrate Player Account balance
             String defCurrency = conomy.value().getConfig().defaultCurrency;
-            cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix +TABLE_ACCOUNT.getName() + "` "
+            cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix + TABLE_BALANCE.getName() + "` "
                     + "(id, currency, context, balance)"
                     + " SELECT u.UUID, '" + defCurrency +"', 'global|', ac.value"
                     + " FROM " + tableUserUUIDs + " as u, "
