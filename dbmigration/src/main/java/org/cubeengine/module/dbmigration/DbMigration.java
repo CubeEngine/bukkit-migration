@@ -115,7 +115,8 @@ public class DbMigration extends Module
             worldMap.put(uid, uuid);
         }
 
-        String tableWorldUUIDs = config.prefix + "user_uuids";
+        logger.info("Worlds in world table: {}", worldMap.size());
+        String tableWorldUUIDs = config.prefix + "world_uuids";
         stmt.execute("CREATE TABLE IF NOT EXISTS " + tableWorldUUIDs + " ("
                 + "ID NUMERIC,"
                 + "UUID VARCHAR(64) )");
@@ -130,6 +131,7 @@ public class DbMigration extends Module
         // OLD accounts: key, user_id(user table), name, value, mask (1=hidden 2=needsinvite)
         // NEW conomy_account id(uuid), name, mask (same + 4=uuid for players)
         // NEW conomy_balance id(uuid), currency, context, balance
+        logger.info("migrate conomy...");
         if (conomy.isAvailable())
         {
             // INFO: This does not handle bank accounts
@@ -170,6 +172,7 @@ public class DbMigration extends Module
         // OLD locklocation
         // NEW locker_location
 
+        logger.info("migrate locker...");
         if (locker.isAvailable())
         {
             if (!keepOld)
@@ -241,6 +244,7 @@ public class DbMigration extends Module
 
         // OLD votes
         // NEW votecount
+        logger.info("migrate votes...");
         if (vote.isAvailable())
         {
             if (!keepOld)
@@ -254,6 +258,8 @@ public class DbMigration extends Module
                     + config.prefix + "votes as v "
                     + "WHERE v.userid = u.id");
         }
+
+        logger.info("Migration done!");
     }
 
     private void batchInsertUUIDMap(Connection conn, Map<Long, UUID> map, String table) throws SQLException
