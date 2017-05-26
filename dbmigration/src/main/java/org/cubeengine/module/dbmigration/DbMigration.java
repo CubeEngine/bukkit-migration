@@ -79,6 +79,7 @@ public class DbMigration extends Module
     @Command(desc = "Migrates old Bukkit Data")
     public void migrateBukkitData(CommandSource ctx, @Flag boolean keepOld) throws SQLException
     {
+        int cnt;
         String mainPrefix = ((MySQLDatabaseConfiguration) db.getDatabaseConfig()).tablePrefix;
         Connection conn = db.getConnection();
         Statement stmt = conn.createStatement();
@@ -141,7 +142,7 @@ public class DbMigration extends Module
                 stmt.execute("DELETE FROM " + mainPrefix + TABLE_ACCOUNT.getName());
             }
             // Migrate Player Accounts
-            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_ACCOUNT.getName() + "` "
+            cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix + TABLE_ACCOUNT.getName() + "` "
                     + "(id, name, HIDDEN, INVITE, IS_UUID)"
                     + " SELECT u.UUID, ou.lastname, ac.mask & 1 = 1, ac.mask & 2 = 2, true"
                     + " FROM " + tableUserUUIDs + " as u, "
@@ -149,14 +150,16 @@ public class DbMigration extends Module
                     + config.prefix + "accounts as ac "
                     + "WHERE ac.user_id = ou.`key`"
                     + "AND ac.user_id = u.ID");
+            logger.info(cnt + " accounts");
             // Migrate Player Account balance
             String defCurrency = conomy.value().getConfig().defaultCurrency;
-            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_ACCOUNT.getName() + "` "
+            cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix +TABLE_ACCOUNT.getName() + "` "
                     + "(id, currency, context, balance)"
                     + " SELECT u.UUID, '" + defCurrency +"', 'global|', ac.value"
                     + " FROM " + tableUserUUIDs + " as u, "
                     + config.prefix + "accounts as ac "
                     + "WHERE ac.user_id = u.ID");
+            logger.info(cnt + " balances");
             // Done!
         }
 
@@ -183,16 +186,17 @@ public class DbMigration extends Module
             }
             // Copy Locks
             stmt.execute("ALTER TABLE `" + mainPrefix +TABLE_LOCKS.getName() + "` ADD (OLD_ID NUMERIC)");
-            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_LOCKS.getName() + "` "
+            cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix +TABLE_LOCKS.getName() + "` "
                     + "(owner_id, flags, type, lock_type, password, entity_uuid, last_access, created, OLD_ID) "
                     + "SELECT l.ID, u.UUID, l.flags, l.type, l.lock_type, l.password, NULL, l.last_access, l.created, l.id "
                     + "FROM " + tableUserUUIDs + " as u, "
                     + config.prefix +"locks as l "
                     + "WHERE l.owner_id = u.id "
                     + "AND l.entity_uid_least IS NULL");
+            logger.info(cnt + " locks");
 
             // Copy Lock Locations
-            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_LOCK_LOCATIONS.getName() + "` "
+            cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix +TABLE_LOCK_LOCATIONS.getName() + "` "
                     + "(world_id, x,y,z, chunkX, chunkZ, lock_id) "
                     + "SELECT w.UUID, ll.x, ll.y, ll.z, ll.chunkX, ll.chunkZ, l.id "
                     + "FROM " + tableWorldUUIDs + " as w,"
@@ -200,10 +204,11 @@ public class DbMigration extends Module
                     + TABLE_LOCKS.getName() + " as l "
                     + "WHERE w.ID = ll.world_id "
                     + "AND ll.lock_id = l.old_id");
+            logger.info(cnt + " locklocation");
 
             // Copy Lock AccessList
             // First global
-            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_ACCESSLIST.getName() + "` "
+            cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix +TABLE_ACCESSLIST.getName() + "` "
                     + "(user_id, lock_id, level, owner_id) "
                     + "SELECT u1.UUID, NULL, al.level, u2.UUID "
                     + "FROM " + tableUserUUIDs + " as u1, "
@@ -212,6 +217,7 @@ public class DbMigration extends Module
                     + "WHERE u1.ID = al.user_id "
                     + "AND u2.ID = al.owner_id "
                     + "AND al.owner_id IS NOT NULL");
+            logger.info(cnt + " global lockaccess");
 
             // Then single locks
             stmt.execute("INSERT INTO `" + mainPrefix +TABLE_ACCESSLIST.getName() + "` "
@@ -223,6 +229,7 @@ public class DbMigration extends Module
                     + "WHERE u1.ID = al.user_id "
                     + "AND l.OLD_ID = al.lock_id "
                     + "AND al.lock_id IS NOT NULL");
+            logger.info(cnt + " block lockaccess");
 
             stmt.execute("ALTER TABLE `" + mainPrefix +TABLE_LOCKS.getName() + "` DROP COLUMN OLD_ID");
         }
@@ -251,12 +258,13 @@ public class DbMigration extends Module
             {
                 stmt.execute("DELETE FROM " + mainPrefix +TABLE_VOTE.getName());
             }
-            stmt.execute("INSERT INTO " + mainPrefix +TABLE_VOTE.getName() + " "
+            cnt =stmt.executeUpdate("INSERT INTO " + mainPrefix +TABLE_VOTE.getName() + " "
                     + "(userid, lastvote, voteamount) "
                     + "SELECT u.UUID, v.lastvote, v.voteamount "
                     + "FROM " + tableUserUUIDs + " as u,"
                     + config.prefix + "votes as v "
                     + "WHERE v.userid = u.id");
+            logger.info(cnt + " voters");
         }
 
         logger.info("Migration done!");
