@@ -24,6 +24,7 @@ import de.cubeisland.engine.modularity.core.Module;
 import de.cubeisland.engine.modularity.core.marker.Disable;
 import de.cubeisland.engine.modularity.core.marker.Enable;
 import org.cubeengine.butler.parametric.Command;
+import org.cubeengine.libcube.service.command.CommandManager;
 import org.cubeengine.libcube.service.database.Database;
 import org.cubeengine.libcube.service.event.EventManager;
 import org.cubeengine.libcube.service.filesystem.ModuleConfig;
@@ -61,6 +62,7 @@ public class RolesMigration extends Module
     @Inject private I18n i18n;
     @Inject private EventManager em;
     @Inject private PluginContainer plugin;
+    @Inject private CommandManager cm;
 
     @Inject Maybe<Roles> roles;
     private Map<UUID, List<String>> roleMap = new HashMap<>();
@@ -68,6 +70,7 @@ public class RolesMigration extends Module
     @Enable
     public void onEnable() throws SQLException
     {
+        cm.addCommands(this, this);
         if (roles.isAvailable())
         {
             Statement stmt = db.getConnection().createStatement();
