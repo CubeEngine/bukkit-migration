@@ -80,6 +80,7 @@ public class DbMigration extends Module
     {
         int cnt;
         String mainPrefix = ((MySQLDatabaseConfiguration) db.getDatabaseConfig()).tablePrefix;
+        logger.info("from prefix " + config.prefix +" to prefix " + mainPrefix);
         Connection conn = db.getConnection();
         Statement stmt = conn.createStatement();
         // MySQL Tables:
