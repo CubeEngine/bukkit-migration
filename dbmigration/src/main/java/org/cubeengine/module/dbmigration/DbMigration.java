@@ -169,6 +169,26 @@ public class DbMigration extends Module
         // OLD ignorelist: empty
         // OLD kits: not needed?
 
+
+        // OLD votes
+        // NEW votecount
+        logger.info("migrate votes...");
+        if (getModularity().provide(Vote.class) != null)
+        {
+            if (!keepOld)
+            {
+                stmt.execute("DELETE FROM " + mainPrefix +TABLE_VOTE.getName());
+            }
+            cnt =stmt.executeUpdate("INSERT INTO " + mainPrefix +TABLE_VOTE.getName() + " "
+                    + "(userid, lastvote, voteamount) "
+                    + "SELECT u.UUID, v.lastvote, v.voteamount "
+                    + "FROM " + tableUserUUIDs + " as u,"
+                    + config.prefix + "votes as v "
+                    + "WHERE v.userid = u.id");
+            logger.info(cnt + " voters");
+        }
+
+
         // OLD locks
         // NEW locker_locks
         // OLD lockaccesslist
@@ -225,7 +245,7 @@ public class DbMigration extends Module
             logger.info(cnt + " global lockaccess");
 
             // Then single locks
-            stmt.execute("INSERT INTO `" + mainPrefix +TABLE_ACCESSLIST.getName() + "` "
+            cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix +TABLE_ACCESSLIST.getName() + "` "
                     + "(user_id, lock_id, level, owner_id) "
                     + "SELECT u1.UUID, l.ID, al.level, NULL "
                     + "FROM " + tableUserUUIDs + " as u1, "
@@ -253,24 +273,6 @@ public class DbMigration extends Module
 
         // OLD teleportinvites: TODO toConfig
         // OLD teleportpoints: TODO toConfig
-
-        // OLD votes
-        // NEW votecount
-        logger.info("migrate votes...");
-        if (getModularity().provide(Vote.class) != null)
-        {
-            if (!keepOld)
-            {
-                stmt.execute("DELETE FROM " + mainPrefix +TABLE_VOTE.getName());
-            }
-            cnt =stmt.executeUpdate("INSERT INTO " + mainPrefix +TABLE_VOTE.getName() + " "
-                    + "(userid, lastvote, voteamount) "
-                    + "SELECT u.UUID, v.lastvote, v.voteamount "
-                    + "FROM " + tableUserUUIDs + " as u,"
-                    + config.prefix + "votes as v "
-                    + "WHERE v.userid = u.id");
-            logger.info(cnt + " voters");
-        }
 
         logger.info("Migration done!");
     }
