@@ -247,12 +247,11 @@ public class DbMigration extends Module
             // Then single locks
             cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix +TABLE_ACCESSLIST.getName() + "` "
                     + "(user_id, lock_id, level, owner_id) "
-                    + "SELECT u1.UUID, l.ID, al.level, NULL "
-                    + "FROM " + tableUserUUIDs + " as u1, "
-                    + mainPrefix +TABLE_LOCKS.getName() + " as l,"
+                    + "SELECT (SELECT u1.UUID FROM " + tableUserUUIDs + " u1 WHERE u1.id = la.user_id )"
+                    + "        , l.ID, al.level, NULL "
+                    + "FROM " + mainPrefix +TABLE_LOCKS.getName() + " as l,"
                     + config.prefix + "lockaccesslist as al "
-                    + "WHERE u1.ID = al.user_id "
-                    + "AND l.OLD_ID = al.lock_id "
+                    + "WHERE l.OLD_ID = al.lock_id "
                     + "AND al.lock_id IS NOT NULL");
             logger.info(cnt + " block lockaccess");
 
