@@ -25,24 +25,23 @@ import static org.cubeengine.module.locker.storage.TableLocks.TABLE_LOCKS;
 import static org.cubeengine.module.vote.storage.TableVote.TABLE_VOTE;
 
 import de.cubeisland.engine.logscribe.Log;
-import de.cubeisland.engine.modularity.asm.marker.ModuleInfo;
-import de.cubeisland.engine.modularity.core.Maybe;
-import de.cubeisland.engine.modularity.core.Module;
-import de.cubeisland.engine.modularity.core.marker.Disable;
-import de.cubeisland.engine.modularity.core.marker.Enable;
 import org.cubeengine.butler.parametric.Command;
 import org.cubeengine.butler.parametric.Flag;
+import org.cubeengine.libcube.CubeEngineModule;
+import org.cubeengine.libcube.ModuleManager;
 import org.cubeengine.libcube.service.command.CommandManager;
 import org.cubeengine.libcube.service.database.Database;
 import org.cubeengine.libcube.service.database.mysql.MySQLDatabaseConfiguration;
 import org.cubeengine.libcube.service.filesystem.ModuleConfig;
 import org.cubeengine.libcube.service.i18n.I18n;
 import org.cubeengine.module.conomy.Conomy;
-import org.cubeengine.module.conomy.storage.TableBalance;
 import org.cubeengine.module.locker.Locker;
-import org.cubeengine.module.locker.storage.Lock;
 import org.cubeengine.module.vote.Vote;
+import org.cubeengine.processor.Dependency;
+import org.cubeengine.processor.Module;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -54,25 +53,28 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
-@ModuleInfo(name = "DBBukkitMigration", description = "Migrate your data")
-public class DbMigration extends Module
+@Singleton
+@Module(id = "dbbukkitmigration", name = "DBBukkitMigration", version = "1.0.0",
+        description = "Migrate your data",
+        dependencies = @Dependency("cubeengine-core"),
+        url = "http://cubeengine.org",
+        authors = {"Anselm 'Faithcaio' Brehme", "Phillip Schichtel"})
+public class DbMigration extends CubeEngineModule
 {
     @ModuleConfig private MigrationConfig config;
     @Inject private Database db;
     @Inject private CommandManager cm;
-    @Inject private Log logger;
+    private Log logger;
     @Inject private I18n i18n;
+    @Inject private ModuleManager mm;
 
-    @Enable
-    public void onEnable()
+    @Listener
+    public void onEnable(GamePreInitializationEvent event)
     {
+        this.logger = mm.getLoggerFor(DbMigration.class);
         cm.addCommands(this, this);
-    }
-
-    @Disable
-    public void onDisable()
-    {
     }
 
     @Command(desc = "Migrates old Bukkit Data")
@@ -134,7 +136,7 @@ public class DbMigration extends Module
         // NEW conomy_account id(uuid), name, mask (same + 4=uuid for players)
         // NEW conomy_balance id(uuid), currency, context, balance
         logger.info("migrate conomy...");
-        if (getModularity().provide(Conomy.class) != null)
+        if (mm.getModule(Conomy.class) != null)
         {
             // INFO: This does not handle bank accounts
 
@@ -153,7 +155,7 @@ public class DbMigration extends Module
                     + "AND ac.user_id = u.ID");
             logger.info(cnt + " accounts");
             // Migrate Player Account balance
-            String defCurrency = getModularity().provide(Conomy.class).getConfig().defaultCurrency;
+            String defCurrency = ((Conomy) mm.getModule(Conomy.class)).getConfig().defaultCurrency;
             cnt = stmt.executeUpdate("INSERT INTO `" + mainPrefix + TABLE_BALANCE.getName() + "` "
                     + "(id, currency, context, balance)"
                     + " SELECT u.UUID, '" + defCurrency +"', 'global|', ac.value"
@@ -173,7 +175,7 @@ public class DbMigration extends Module
         // OLD votes
         // NEW votecount
         logger.info("migrate votes...");
-        if (getModularity().provide(Vote.class) != null)
+        if (mm.getModule(Vote.class) != null)
         {
             if (!keepOld)
             {
@@ -197,7 +199,7 @@ public class DbMigration extends Module
         // NEW locker_location
 
         logger.info("migrate locker...");
-        if (getModularity().provide(Locker.class) != null)
+        if (mm.getModule(Locker.class) != null)
         {
             if (!keepOld)
             {

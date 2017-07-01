@@ -18,12 +18,9 @@
 package org.cubeengine.module.rolesmigration;
 
 import de.cubeisland.engine.logscribe.Log;
-import de.cubeisland.engine.modularity.asm.marker.ModuleInfo;
-import de.cubeisland.engine.modularity.core.Maybe;
-import de.cubeisland.engine.modularity.core.Module;
-import de.cubeisland.engine.modularity.core.marker.Disable;
-import de.cubeisland.engine.modularity.core.marker.Enable;
 import org.cubeengine.butler.parametric.Command;
+import org.cubeengine.libcube.CubeEngineModule;
+import org.cubeengine.libcube.ModuleManager;
 import org.cubeengine.libcube.service.command.CommandManager;
 import org.cubeengine.libcube.service.database.Database;
 import org.cubeengine.libcube.service.event.EventManager;
@@ -32,11 +29,14 @@ import org.cubeengine.libcube.service.i18n.I18n;
 import org.cubeengine.module.roles.Roles;
 import org.cubeengine.module.roles.data.PermissionData;
 import org.cubeengine.module.roles.service.subject.UserSubject;
+import org.cubeengine.processor.Dependency;
+import org.cubeengine.processor.Module;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.Getter;
+import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.profile.GameProfile;
@@ -52,26 +52,35 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
-@ModuleInfo(name = "RolesBukkitMigration", description = "Migrate your data")
-public class RolesMigration extends Module
+@Singleton
+@Module(id = "rolebukkitmigration", name = "RolesBukkitMigration", version = "1.0.0",
+        description = "Migrate your data",
+        dependencies = {@Dependency("cubeengine-core"), @Dependency("cubeengine-roles")},
+        url = "http://cubeengine.org",
+        authors = {"Anselm 'Faithcaio' Brehme", "Phillip Schichtel"})
+public class RolesMigration extends CubeEngineModule
 {
     @ModuleConfig private RolesMigrationConfig config;
     @Inject private Database db;
-    @Inject private Log logger;
+    private Log logger;
     @Inject private I18n i18n;
     @Inject private EventManager em;
     @Inject private PluginContainer plugin;
     @Inject private CommandManager cm;
+    @Inject private ModuleManager mm;
 
-    @Inject Maybe<Roles> roles;
     private Map<UUID, List<String>> roleMap = new HashMap<>();
+    private Roles roles;
 
-    @Enable
-    public void onEnable() throws SQLException
+    @Listener
+    public void onEnable(GamePostInitializationEvent event) throws SQLException
     {
+        this.logger = mm.getLoggerFor(RolesMigration.class);
+        this.roles = ((Roles) mm.getModule(Roles.class));
         cm.addCommands(this, this);
-        if (roles.isAvailable())
+        if (roles != null)
         {
             Statement stmt = db.getConnection().createStatement();
             ResultSet rs = stmt.executeQuery(
@@ -98,12 +107,6 @@ public class RolesMigration extends Module
         }
     }
 
-    @Disable
-    public void onDisable()
-    {
-
-    }
-
     @Listener
     public void onLogin(ClientConnectionEvent.Join event, @Getter("getTargetEntity") Player player)
     {
@@ -122,7 +125,7 @@ public class RolesMigration extends Module
 
         data.getParents().addAll(oldroles);
         player.offer(data);
-        UserSubject subject = roles.value().getService().getUserSubjects().get(player.getIdentifier());
+        UserSubject subject = roles.getService().getUserSubjects().get(player.getIdentifier());
         subject.reload();
     }
 
