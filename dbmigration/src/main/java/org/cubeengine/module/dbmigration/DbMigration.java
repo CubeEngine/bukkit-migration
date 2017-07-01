@@ -56,11 +56,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
-@Module(id = "dbbukkitmigration", name = "DBBukkitMigration", version = "1.0.0",
-        description = "Migrate your data",
-        dependencies = @Dependency("cubeengine-core"),
-        url = "http://cubeengine.org",
-        authors = {"Anselm 'Faithcaio' Brehme", "Phillip Schichtel"})
+@Module
 public class DbMigration extends CubeEngineModule
 {
     @ModuleConfig private MigrationConfig config;

@@ -55,11 +55,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
-@Module(id = "rolebukkitmigration", name = "RolesBukkitMigration", version = "1.0.0",
-        description = "Migrate your data",
-        dependencies = {@Dependency("cubeengine-core"), @Dependency("cubeengine-roles")},
-        url = "http://cubeengine.org",
-        authors = {"Anselm 'Faithcaio' Brehme", "Phillip Schichtel"})
+@Module(dependencies = @Dependency("cubeengine-roles"))
 public class RolesMigration extends CubeEngineModule
 {
     @ModuleConfig private RolesMigrationConfig config;
