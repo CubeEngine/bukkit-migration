@@ -95,7 +95,6 @@ public class RolesMigration extends CubeEngineModule
             }
 
             logger.info("Loaded {} players with their roles.", roleMap.size());
-            em.registerListener(RolesMigration.class, this);
         }
         else
         {
