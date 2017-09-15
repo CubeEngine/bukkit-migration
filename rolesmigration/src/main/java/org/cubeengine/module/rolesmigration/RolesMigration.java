@@ -40,6 +40,7 @@ import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.profile.GameProfile;
+import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.service.whitelist.WhitelistService;
 
 import java.sql.ResultSet;
@@ -120,8 +121,11 @@ public class RolesMigration extends CubeEngineModule
 
         data.getParents().addAll(oldroles);
         player.offer(data);
-        UserSubject subject = roles.getService().getUserSubjects().get(player.getIdentifier());
-        subject.reload();
+        Subject subject = roles.getService().getUserSubjects().loadSubject(player.getIdentifier()).join();
+        if (subject instanceof UserSubject)
+        {
+            ((UserSubject) subject).reload();
+        }
     }
 
     @Command(desc = "Adds all players with non-default roles to the whitelist")
