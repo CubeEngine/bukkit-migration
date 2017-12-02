@@ -24,7 +24,7 @@ import static org.cubeengine.module.locker.storage.TableLockLocations.TABLE_LOCK
 import static org.cubeengine.module.locker.storage.TableLocks.TABLE_LOCKS;
 import static org.cubeengine.module.vote.storage.TableVote.TABLE_VOTE;
 
-import de.cubeisland.engine.logscribe.Log;
+import org.cubeengine.logscribe.Log;
 import org.cubeengine.butler.parametric.Command;
 import org.cubeengine.butler.parametric.Flag;
 import org.cubeengine.libcube.CubeEngineModule;

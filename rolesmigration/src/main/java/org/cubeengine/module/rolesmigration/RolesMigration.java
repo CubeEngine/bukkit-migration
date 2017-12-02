@@ -17,7 +17,7 @@
  */
 package org.cubeengine.module.rolesmigration;
 
-import de.cubeisland.engine.logscribe.Log;
+import org.cubeengine.logscribe.Log;
 import org.cubeengine.butler.parametric.Command;
 import org.cubeengine.libcube.CubeEngineModule;
 import org.cubeengine.libcube.ModuleManager;
